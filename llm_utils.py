@@ -1,8 +1,7 @@
 import os
 from langchain_huggingface import HuggingFaceEndpoint, HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 LLM_REPO_ID = "HuggingFaceH4/zephyr-7b-beta"
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
@@ -60,17 +59,17 @@ Answer:"""
     return PromptTemplate(input_variables=["context", "question"], template=template)
 
 
-def create_summary_chain(llm, verbose=False):
-    # Wraps the LLM and summary prompt into a runnable chain
-    return LLMChain(llm=llm, prompt=create_summary_prompt(), verbose=verbose)
+def create_summary_chain(llm):
+    # Builds a prompt-to-LLM pipeline (LCEL) for summarization
+    return create_summary_prompt() | llm
 
 
-def create_qa_chain(llm, verbose=False):
-    # Wraps the LLM and QA prompt into a runnable chain
-    return LLMChain(llm=llm, prompt=create_qa_prompt_template(), verbose=verbose)
+def create_qa_chain(llm):
+    # Builds a prompt-to-LLM pipeline (LCEL) for question answering
+    return create_qa_prompt_template() | llm
 
 
 def generate_answer(question, faiss_index, qa_chain, k=7):
     # Retrieves relevant context then asks the QA chain to answer the question
     context = retrieve(question, faiss_index, k=k)
-    return qa_chain.predict(context=context, question=question)
+    return qa_chain.invoke({"context": context, "question": question})
