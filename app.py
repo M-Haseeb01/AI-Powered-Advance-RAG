@@ -1,5 +1,12 @@
+import spaces
 import gradio as gr
 from transcript_utils import get_transcript, process, chunk_transcript
+
+
+@spaces.GPU
+def _warmup():
+    # No-op: satisfies this Space's ZeroGPU requirement; the app itself only uses CPU and the HF Inference API
+    return None
 from llm_utils import (
     get_llm,
     get_embedding_model,
@@ -43,7 +50,7 @@ def summarize_video(video_url):
 
     llm = get_llm()
     summary_chain = create_summary_chain(llm)
-    return summary_chain.run({"transcript": processed_transcript})
+    return summary_chain.invoke({"transcript": processed_transcript})
 
 
 def answer_question(video_url, user_question):
@@ -67,7 +74,7 @@ def answer_question(video_url, user_question):
     return generate_answer(user_question, faiss_index, qa_chain)
 
 
-with gr.Blocks(theme=THEME, css=CUSTOM_CSS, title="YouTube Summarizer & Q&A") as interface:
+with gr.Blocks(title="YouTube Summarizer & Q&A") as interface:
     with gr.Column(elem_id="header"):
         gr.Markdown("# 🎬 YouTube Video Summarizer & Q&A")
         gr.Markdown("Paste a YouTube link, get an instant summary, then ask follow-up questions about the video.")
@@ -88,7 +95,7 @@ with gr.Blocks(theme=THEME, css=CUSTOM_CSS, title="YouTube Summarizer & Q&A") as
                 summary_output = gr.Textbox(
                     label="Video Summary",
                     lines=6,
-                    show_copy_button=True,
+                    buttons=["copy"],
                     placeholder="Your summary will appear here...",
                 )
 
@@ -102,7 +109,7 @@ with gr.Blocks(theme=THEME, css=CUSTOM_CSS, title="YouTube Summarizer & Q&A") as
                 answer_output = gr.Textbox(
                     label="Answer",
                     lines=6,
-                    show_copy_button=True,
+                    buttons=["copy"],
                     placeholder="Your answer will appear here...",
                 )
 
@@ -116,4 +123,9 @@ with gr.Blocks(theme=THEME, css=CUSTOM_CSS, title="YouTube Summarizer & Q&A") as
     question_btn.click(answer_question, inputs=[video_url, question_input], outputs=answer_output)
 
 if __name__ == "__main__":
-    interface.launch(server_name="0.0.0.0", server_port=7860)
+    interface.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        theme=THEME,
+        css=CUSTOM_CSS,
+    )
