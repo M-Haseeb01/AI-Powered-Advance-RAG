@@ -1,6 +1,6 @@
 import re
 from youtube_transcript_api import YouTubeTranscriptApi
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 def get_video_id(url):
