@@ -8,7 +8,7 @@ EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 def get_llm():
-    # Connects to a free, open-source instruct model hosted on the Hugging Face Inference API
+    
     return HuggingFaceEndpoint(
         repo_id=LLM_REPO_ID,
         huggingfacehub_api_token=os.environ.get("HUGGINGFACEHUB_API_TOKEN"),
